@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Gothic+Expanded+One&display=swap" rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <title>Jala World</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-image: url(images/jalaworld.png);
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+            font-family: "Special Gothic Expanded One", sans-serif;
+            font-weight: 400;
+            font-style: normal;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            margin-top: 4rem;
+            padding: 30px;
+            width: 80%;
+            max-width: 600px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        h1 {
+            color: #e7673f;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background-color:  #e7673f;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background-color: #e45327;
+            transform: translateY(-2px);
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .option-btn {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            padding: 12px;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+        
+        .option-btn:hover {
+            background-color: #bdc3c7;
+        }
+        
+        .quiz-image {
+            width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #e8f4f8;
+            display: none;
+        }
+        
+        .correct {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .incorrect {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .level-indicator {
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #e7673f;
+        }
+        
+        .progress-container {
+            width: 100%;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #e7673f;
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="app">
+        <div id="welcome-screen">
+            <h1>¡Bienvenido a Jala World!</h1>
+            <p>Estás a cargo de la construcción y administración del parque de diversiones más grande del mundo, el colosal JalaWorld, ¿Estás listo para comenzar esta aventura?</p>
+            <button id="start-btn">Comenzar aventura</button>
+        </div>
+        
+        <div id="quiz-screen" style="display: none;">
+            <div class="level-indicator" id="level-indicator">Nivel 1</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <img src="" alt="Imagen de la pregunta" class="quiz-image" id="question-image">
+            <h2 id="question-text">Pregunta aquí</h2>
+            <div class="options-container" id="options-container">
+            </div>
+            <div class="feedback" id="feedback">
+                <p id="feedback-text"></p>
+                <button id="next-btn" style="display: none;">Siguiente Nivel</button>
+            </div>
+        </div>
+        
+        <div id="completion-screen" style="display: none;">
+            <h1>¡Aventura completada!</h1>
+            <p id="final-score">Has superado todos los niveles de Jala World.</p>
+            <button id="restart-btn">Volver a empezar</button>
+        </div>
+    </div>
+
+    <script>
+
+        let currentLevel = 0;
+        let score = 0;
+        let selectedAnswer = null;
+        
+        // Preguntas
+        const quizData = [
+            // Nivel 1
+            {
+                question: "Estás diseñando la montaña rusa Jala-Rex, y para darle un toque extremo, cada nueva curva debe tener una conexión especial con cada una de las curvas anteriores. Es decir, la curva 2 se conecta con la 1, la 3 con la 1 y 2, la 4 con la 1, 2 y 3, y así sucesivamente. Si hay n curvas, ¿cuántas conexiones en total vas a tener que construir?",
+                image: "https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+                options: [
+                    "\\[ n^2 \\]",
+                    "\\[ \\frac{n(n-1)}{2} \\]",
+                    "\\[ n(n+1) \\]",
+                    "\\[ 2^n \\]"
+                ],
+                correctAnswer: 1,
+                explanation: "La respuesta correcta es \\(\\frac{n(n-1)}{2}\\). Este problema es equivalente a contar el número de conexiones en un grafo completo de n vértices, donde cada curva es un vértice y cada conexión es una arista. La fórmula para el número de aristas en un grafo completo es \\(\\frac{n(n-1)}{2}\\)."
+            },
+            // Nivel 2
+            {
+                question: "En JalaWorld, hay dos montañas rusas: Jala-Rex y Jala-Storm. Cuando los visitantes se suben a ambas montañas rusas reciben una entrada de regalo. Los visitantes que han disfrutado de Jala-Rex forman el conjunto A = {Ana, Carlos, Lucía, Pedro, Sofía}, mientras que los visitantes que han montado en Jala-Storm forman el conjunto B = {Carlos, Lucía, Sofía, Mario, Elena}. Debemos encontrar a las personas que subieron a ambas montañas rusas para que puedan recibir su entrada de regalo. ¿Cómo podemos averiguar esto?",
+                image: "https://www.clarin.com/2022/03/15/k6e0kZ0QX_1200x0__1.jpg",
+                options: [
+                    "A ∩ B = {Carlos, Lucía, Sofía}",
+                    "A ∪ B = {Ana, Carlos, Lucía, Pedro, Sofía, Mario, Elena}",
+                    "A - B = {Ana, Pedro}",
+                    "B - A = {Mario, Elena}"
+                ],
+                correctAnswer: 0,
+                explanation: "La respuesta correcta es A ∩ B = {Carlos, Lucía, Sofía}. La intersección de conjuntos (∩) nos da los elementos que están presentes en ambos conjuntos, que en este caso son las personas que montaron ambas montañas rusas y por lo tanto deben recibir la entrada de regalo."
+            },
+            // Nivel 3
+            {
+                question: "Estás diseñando un nuevo tramo de la montaña rusa Jala-Rex. Analiza la curva del diseño y selecciona la función matemática que mejor representa su forma:",
+                image: "images/funcion.jpg",
+                options: [
+                    "Función lineal: \\( f(x) = mx + b \\)",
+                    "Función cuadrática: \\( f(x) = ax^2 + bx + c \\)",
+                    "Función trigonométrica: \\( f(x) = a\\cdot\\sin(bx) + c \\)",
+                    "Función exponencial: \\( f(x) = a^x \\)"
+                ],
+                correctAnswer: 2,
+                explanation: "La respuesta correcta es la función trigonométrica. Las montañas rusas suelen usar curvas suaves y repetitivas similares a funciones seno o coseno para garantizar una transición fluida y segura entre los distintos tramos. Estas funciones permiten crear las subidas y bajadas características de las montañas rusas."
+            },
+            // Nivel 4
+            {
+                question: "Necesitas establecer la altura mínima para cada Montaña Rusa en JalaWorld. Para lograrlo, se toma en cuenta que: " +
+                "1. Las velocidades de cada atracción (en km/h) son diferentes. " +
+                "2. La altura promedio (en cm) permitida varía según la edad. " +
+                "3. Según las normas de seguridad, la altura debe ser al menos igual a la velocidad de la atracción más 90. " +
+                "¿Cuál de los siguientes conjuntos (altura en cm, velocidad en km/h) cumple correctamente con esta norma?",
+                image: "https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+                options: [
+                  "(120,30), (130,40), (140,50), (150,60)",
+                  "(120,30), (130,40), (130,50), (150,60)",
+                  "(120,30), (130,40), (120,50), (150,60)",
+                  "(120,30), (130,40), (140,50), (140,60)"
+                ],
+                correctAnswer: 0,
+                explanation: "El conjunto (120,30), (130,40), (140,50), (150,60) cumple con la norma de seguridad. En cada caso, la altura es mayor o igual a la velocidad + 90:\n" +
+                  "- 30 km/h → altura ≥ 120 cm\n" +
+                  "- 40 km/h → altura ≥ 130 cm\n" +
+                  "- 50 km/h → altura ≥ 140 cm\n" +
+                  "- 60 km/h → altura ≥ 150 cm"
+            }
+        ];
+        
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const completionScreen = document.getElementById('completion-screen');
+        const startBtn = document.getElementById('start-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const questionText = document.getElementById('question-text');
+        const questionImage = document.getElementById('question-image');
+        const optionsContainer = document.getElementById('options-container');
+        const feedback = document.getElementById('feedback');
+        const feedbackText = document.getElementById('feedback-text');
+        const levelIndicator = document.getElementById('level-indicator');
+        const progressBar = document.getElementById('progress-bar');
+        const finalScore = document.getElementById('final-score');
+        
+        startBtn.addEventListener('click', startQuiz);
+        nextBtn.addEventListener('click', nextLevel);
+        restartBtn.addEventListener('click', restartQuiz);
+        
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        function initializeQuiz() {
+            shuffleArray(quizData);
+            quizData.forEach(question => {
+                const correctAnswer = question.options[question.correctAnswer];
+                shuffleArray(question.options);
+                question.correctAnswer = question.options.indexOf(correctAnswer);
+            });
+        }
+        
+        function startQuiz() {
+            initializeQuiz();
+            welcomeScreen.style.display = 'none';
+            quizScreen.style.display = 'block';
+            currentLevel = 0;
+            score = 0;
+            loadQuestion();
+        }
+        
+
+        function loadQuestion() {
+            levelIndicator.textContent = `Nivel ${currentLevel + 1}`;
+            
+
+            const progress = ((currentLevel + 1) / quizData.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            
+            const question = quizData[currentLevel];
+            questionText.textContent = question.question;
+            questionImage.src = question.image;
+            questionImage.alt = `Imagen para: ${question.question}`;
+            
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.classList.add('option-btn');
+                
+                const mathContainer = document.createElement('div');
+                mathContainer.classList.add('math-container');
+                mathContainer.innerHTML = option;
+                
+                button.appendChild(mathContainer);
+                button.addEventListener('click', () => selectAnswer(index));
+                optionsContainer.appendChild(button);
+            });
+            
+            feedback.style.display = 'none';
+            feedback.className = 'feedback';
+            nextBtn.style.display = 'none';
+            
+            if (window.MathJax) {
+                MathJax.typesetPromise().catch(err => console.log("Error de MathJax:", err));
+            }
+        }
+        
+        function selectAnswer(index) {
+            const question = quizData[currentLevel];
+            selectedAnswer = index;
+            
+            const optionButtons = document.querySelectorAll('.option-btn');
+            optionButtons.forEach(button => {
+                button.disabled = true;
+            });
+            
+            feedback.style.display = 'block';
+            
+            if (index === question.correctAnswer) {
+                // Respuesta correcta
+                feedbackText.innerHTML = `¡Muy bien! ${question.explanation}`;
+                feedback.classList.add('correct');
+                score++;
+            } else {
+                // Respuesta incorrecta
+                feedbackText.innerHTML = `Incorrecto. La respuesta correcta es: ${question.options[question.correctAnswer].replace(/\\\[|\]\\/g, '')}. ${question.explanation}`;
+                feedback.classList.add('incorrect');
+            }
+            
+            nextBtn.style.display = 'block';
+            
+            if (window.MathJax) {
+                MathJax.typesetPromise().catch(err => console.log("Error de MathJax:", err));
+            }
+        }
+        
+        function nextLevel() {
+            currentLevel++;
+            
+            if (currentLevel >= quizData.length) {
+                showCompletionScreen();
+                return;
+            }
+            
+            loadQuestion();
+        }
+        
+        function showCompletionScreen() {
+            quizScreen.style.display = 'none';
+            completionScreen.style.display = 'block';
+            finalScore.textContent = `¡Felicidades! Has completado los 4 niveles de Jala World con un puntaje de ${score} de ${quizData.length}.`;
+        }
+
+        function restartQuiz() {
+            completionScreen.style.display = 'none';
+            welcomeScreen.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
